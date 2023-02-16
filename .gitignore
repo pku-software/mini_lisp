@@ -1,5 +1,8 @@
 .xmake
 build
+.cache
 
 .vscode/*
 !.vscode/tasks.json
+compile_commands.json
+

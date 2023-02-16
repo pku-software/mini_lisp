@@ -28,15 +28,14 @@ protected:
 public:
     virtual ~Token() = default;
 
+    static std::unique_ptr<Token> fromChar(char c);
+
     TokenType getType() const {
         return type;
     }
-
-    static std::unique_ptr<Token> fromChar(char c);
-
-
     bool isDot() const;
     std::optional<std::string> getQuoteName() const;
+    virtual std::string toString() const;
 };
 
 class BooleanLiteralToken : public Token {
@@ -46,12 +45,13 @@ private:
 public:
     BooleanLiteralToken(bool value) : Token(TokenType::BOOLEAN_LITERAL), value{value} {}
 
+    static std::unique_ptr<BooleanLiteralToken> fromString(const std::string& str);
+    static std::unique_ptr<BooleanLiteralToken> fromChar(char c);
+
     bool getValue() const {
         return value;
     }
-
-    static std::unique_ptr<BooleanLiteralToken> fromString(const std::string& str);
-    static std::unique_ptr<BooleanLiteralToken> fromChar(char c);
+    std::string toString() const override;
 };
 
 class NumericLiteralToken : public Token {
@@ -64,6 +64,7 @@ public:
     double getValue() const {
         return value;
     }
+    std::string toString() const override;
 };
 
 class StringLiteralToken : public Token {
@@ -76,6 +77,7 @@ public:
     const std::string& getValue() const {
         return value;
     }
+    std::string toString() const override;
 };
 
 class IdentifierToken : public Token {
@@ -88,6 +90,7 @@ public:
     const std::string& getName() const {
         return name;
     }
+    std::string toString() const override;
 };
 
 std::ostream& operator<<(std::ostream& os, const Token& token);

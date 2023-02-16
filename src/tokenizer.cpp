@@ -2,6 +2,7 @@
 
 #include <cctype>
 #include <set>
+#include <stdexcept>
 
 #include "./error.h"
 
@@ -53,11 +54,13 @@ std::unique_ptr<Token> Tokenizer::nextToken(int& pos) {
             } while (pos < input.size() && !std::isspace(input[pos]) &&
                      !TOKEN_END.contains(input[pos]));
             auto text = input.substr(start, pos - start);
-            if (std::isdigit(text[0])) {
-                return std::make_unique<NumericLiteralToken>(std::stoi(text));
-            } else {
-                return std::make_unique<IdentifierToken>(text);
+            if (std::isdigit(text[0]) || text[0] == '+' || text[0] == '-' || text[0] == '.') {
+                try {
+                    return std::make_unique<NumericLiteralToken>(std::stod(text));
+                } catch (std::invalid_argument& e) {
+                }
             }
+            return std::make_unique<IdentifierToken>(text);
         }
     }
     return nullptr;
