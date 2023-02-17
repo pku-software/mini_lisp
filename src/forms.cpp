@@ -47,7 +47,7 @@ ValuePtr lambdaForm(ValuePtr operands, EvaluateEnv& env) {
         }
         formals = std::move(cdr);
     }
-    return std::make_shared<LambdaValue>(params, std::move(body));
+    return std::make_shared<LambdaValue>(params, std::move(body), env.shared_from_this());
 }
 
 ValuePtr defineForm(ValuePtr operands, EvaluateEnv& env) {
@@ -59,13 +59,10 @@ ValuePtr defineForm(ValuePtr operands, EvaluateEnv& env) {
         env.defineBinding(*name, env.eval(args[1]));
         return args[0];
     } else if (args[0]->isPair()) {
-        auto [car, cdr] = static_cast<const PairValue&>(*args[0]);
+        auto [decl, body] = static_cast<const PairValue&>(*operands);
+        auto [car, cdr] = static_cast<const PairValue&>(*decl);
         if (auto name = car->getSymbolName()) {
-            auto proc = lambdaForm(
-                std::make_shared<PairValue>(
-                    std::move(cdr),
-                    std::make_shared<PairValue>(std::move(args[1]), std::make_shared<NilValue>())),
-                env);
+            auto proc = lambdaForm(std::make_shared<PairValue>(cdr, body), env);
             env.defineBinding(*name, proc);
             return car;
         } else {

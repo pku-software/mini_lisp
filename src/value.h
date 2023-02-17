@@ -183,17 +183,14 @@ class LambdaValue final : public Value {
 private:
     std::vector<std::string> params;
     ValuePtr body;
+    std::shared_ptr<EvaluateEnv> env;
 
 public:
-    LambdaValue(const std::vector<std::string>& params, ValuePtr body)
-        : params{params}, body{std::move(body)} {}
+    LambdaValue(const std::vector<std::string>& params, ValuePtr body,
+                std::shared_ptr<EvaluateEnv> env)
+        : params{params}, body{std::move(body)}, env{std::move(env)} {}
 
-    const std::vector<std::string>& getParameters() const {
-        return params;
-    }
-    ValuePtr getBody() {
-        return body;
-    }
+    ValuePtr apply(const std::vector<ValuePtr>& args);
 
     std::string toString() const override;
 };

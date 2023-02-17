@@ -393,10 +393,16 @@ ValuePtr eval(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
 }
 ValuePtr apply(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
     checkArgsCount(args, 2, 2);
-    if (!args[1]->isList()) {
+    auto rest = args[1];
+    std::vector<ValuePtr> callArgs;
+    while (rest->isPair()) {
+        auto [car, cdr] = static_cast<const PairValue&>(*rest);
+        callArgs.push_back(std::move(car));
+        rest = std::move(cdr);
+    }
+    if (!rest->isList()) {
         throw LispError("apply: second argument must be a list");
     }
-    auto callArgs = env.evalList(args[1]);
     return env.apply(std::move(args[0]), std::move(callArgs));
 }
 

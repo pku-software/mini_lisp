@@ -9,18 +9,24 @@
 #include "./value.h"
 
 
-class EvaluateEnv {
+class EvaluateEnv : public std::enable_shared_from_this<EvaluateEnv> {
 private:
     std::unordered_map<std::string, ValuePtr> bindings;
 
     void bindGlobals();
-    EvaluateEnv createChildEnv(const std::vector<std::string>& params,
+    std::shared_ptr<EvaluateEnv> createChildEnv(const std::vector<std::string>& params,
                                const std::vector<ValuePtr>& args) const;
+    friend class LambdaValue;
 
-public:
     EvaluateEnv() {
         bindGlobals();
     };
+
+public:
+
+    static std::shared_ptr<EvaluateEnv> create() {
+        return std::shared_ptr<EvaluateEnv>(new EvaluateEnv());
+    }
 
     ValuePtr eval(ValuePtr expr);
     std::vector<ValuePtr> evalList(ValuePtr expr);

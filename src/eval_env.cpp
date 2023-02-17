@@ -17,15 +17,15 @@ void EvaluateEnv::bindGlobals() {
     }
 }
 
-EvaluateEnv EvaluateEnv::createChildEnv(const std::vector<std::string>& params,
+std::shared_ptr<EvaluateEnv> EvaluateEnv::createChildEnv(const std::vector<std::string>& params,
                                         const std::vector<ValuePtr>& args) const {
     if (params.size() != args.size()) {
         throw LispError("Procedure expected " + std::to_string(params.size()) +
                         " parameters, got " + std::to_string(args.size()));
     }
-    EvaluateEnv childEnv(*this);
+    auto childEnv = std::make_shared<EvaluateEnv>(*this);
     for (std::size_t i = 0; i < params.size(); i++) {
-        childEnv.defineBinding(params[i], args[i]);
+        childEnv->defineBinding(params[i], args[i]);
     }
     return childEnv;
 }
@@ -40,9 +40,7 @@ ValuePtr EvaluateEnv::apply(ValuePtr operator_, const std::vector<ValuePtr>& ope
         return proc->apply(operands, *this);
     }
     auto lambda = std::static_pointer_cast<LambdaValue>(std::move(operator_));
-    auto childEnv = createChildEnv(lambda->getParameters(), operands);
-    auto result = childEnv.evalList(lambda->getBody());
-    return std::move(result.back());
+    return lambda->apply(operands);
 }
 
 ValuePtr EvaluateEnv::eval(ValuePtr expr) {

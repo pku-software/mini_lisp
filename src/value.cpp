@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "./eval_env.h"
 
 std::optional<std::string> Value::getSymbolName() const {
     if (isSymbol()) {
@@ -102,6 +103,12 @@ std::string BuiltinProcValue::toString() const {
 
 std::string LambdaValue::toString() const {
     return "#<procedure>";
+}
+
+ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args) {
+    auto childEnv = env->createChildEnv(params, args);
+    auto result = childEnv->evalList(body);
+    return std::move(result.back());
 }
 
 std::ostream& Value::print() const {

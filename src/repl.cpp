@@ -28,11 +28,11 @@ void readEvalPrintLoop() {
         rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
         return true;
     });
-    EvaluateEnv evalEnv;
+    auto env = EvaluateEnv::create();
     while (true) {
         try {
             std::shared_ptr value = reader.read();
-            auto result = evalEnv.eval(value);
+            auto result = env->eval(value);
             result->print();
         } catch (EOFError&) {
             break;
@@ -53,11 +53,11 @@ void loadFile(const char* filename) {
     while (std::getline(file, line)) {
         rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
     }
-    EvaluateEnv evalEnv;
+    auto env = EvaluateEnv::create();
     Reader reader(tokens);
     try {
         while (true) {
-            evalEnv.eval(reader.read());
+            env->eval(reader.read());
         }
     } catch (EOFError&) {
     } catch (std::runtime_error& e) {
