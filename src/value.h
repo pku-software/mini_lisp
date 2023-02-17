@@ -9,6 +9,10 @@
 #include <string>
 #include <vector>
 
+class Value;
+using ValuePtr = std::shared_ptr<Value>;
+class PairValue;
+
 class Value {
 public:
     virtual std::string toString() const = 0;
@@ -17,7 +21,6 @@ public:
 
     std::ostream& print() const;
 
-    std::optional<std::string> getSymbolName() const;
     bool isSymbol() const;
     bool isNil() const;
     bool isBoolean() const;
@@ -30,9 +33,20 @@ public:
 
     bool isList() const;
     bool isTrue() const;
-};
 
-using ValuePtr = std::shared_ptr<Value>;
+    std::optional<std::string> getSymbolName() const;
+
+    bool asBool() const;
+    double asNumber() const;
+    const std::string& asString() const;
+    const PairValue& asPair() const;
+    std::vector<ValuePtr> toVector() const;
+
+    static ValuePtr nil();
+    static ValuePtr fromBoolean(bool);
+    static ValuePtr fromNumber(double);
+    static ValuePtr fromVector(const std::vector<ValuePtr>&);
+};
 
 class NilValue final : public Value {
 public:
@@ -51,7 +65,7 @@ public:
     IdentifierValue(const std::string& name) : name{name} {}
     bool operator==(const IdentifierValue&) const = default;
 
-    std::string getName() const {
+    const std::string& getName() const {
         return name;
     }
 
@@ -100,7 +114,7 @@ public:
     StringValue(const std::string& value) : value{value} {}
     auto operator<=>(const StringValue&) const = default;
 
-    std::string getValue() const {
+    const std::string& getValue() const {
         return value;
     }
 
@@ -130,17 +144,7 @@ public:
     std::string toString() const override;
 
     template <std::size_t I>
-    std::tuple_element_t<I, PairValue> get() && {
-        if constexpr (I == 0) {
-            return std::move(car);
-        } else if constexpr (I == 1) {
-            return std::move(cdr);
-        } else {
-            static_assert(I < 2, "Index out of bounds");
-        }
-    }
-    template <std::size_t I>
-    std::tuple_element_t<I, PairValue> get() & {
+    std::tuple_element_t<I, PairValue> get() const {
         if constexpr (I == 0) {
             return car;
         } else if constexpr (I == 1) {

@@ -1,8 +1,8 @@
 #include "./eval_env.h"
 
+#include <algorithm>
 #include <iterator>
 #include <memory>
-#include <algorithm>
 #include <string>
 
 #include "./builtins.h"
@@ -18,12 +18,12 @@ void EvaluateEnv::bindGlobals() {
 }
 
 std::shared_ptr<EvaluateEnv> EvaluateEnv::createChildEnv(const std::vector<std::string>& params,
-                                        const std::vector<ValuePtr>& args) const {
+                                                         const std::vector<ValuePtr>& args) const {
     if (params.size() != args.size()) {
         throw LispError("Procedure expected " + std::to_string(params.size()) +
                         " parameters, got " + std::to_string(args.size()));
     }
-    auto childEnv = std::make_shared<EvaluateEnv>(*this);
+    auto childEnv = clone();
     for (std::size_t i = 0; i < params.size(); i++) {
         childEnv->defineBinding(params[i], args[i]);
     }
@@ -56,7 +56,7 @@ ValuePtr EvaluateEnv::eval(ValuePtr expr) {
     if (!expr->isList()) {
         throw LispError("Malformed list " + expr->toString());
     }
-    auto [car, cdr] = static_cast<const PairValue&>(*expr);
+    auto [car, cdr] = expr->asPair();
     if (auto name = car->getSymbolName()) {
         if (auto it = SPECIAL_FORMS.find(*name); it != SPECIAL_FORMS.end()) {
             return it->second(std::move(cdr), *this);
@@ -68,14 +68,9 @@ ValuePtr EvaluateEnv::eval(ValuePtr expr) {
 }
 
 std::vector<ValuePtr> EvaluateEnv::evalList(ValuePtr expr) {
-    if (expr->isNil()) {
-        return {};
-    }
-    auto [car, cdr] = static_cast<const PairValue&>(*expr);
-    auto car_ = eval(std::move(car));
-    auto cdr_ = evalList(std::move(cdr));
-    std::vector result{car_};
-    rg::move(std::move(cdr_), std::back_inserter(result));
+    std::vector<ValuePtr> result;
+    rg::transform(expr->toVector(), std::back_inserter(result),
+                  [this](ValuePtr v) { return eval(std::move(v)); });
     return result;
 }
 

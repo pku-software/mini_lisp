@@ -3,17 +3,10 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 
+#include "./error.h"
 #include "./eval_env.h"
-
-std::optional<std::string> Value::getSymbolName() const {
-    if (isSymbol()) {
-        auto symbol = static_cast<const IdentifierValue*>(this);
-        return symbol->getName();
-    } else {
-        return std::nullopt;
-    }
-}
 
 bool Value::isSymbol() const {
     return typeid(*this) == typeid(IdentifierValue);
@@ -47,6 +40,10 @@ bool Value::isSelfEvaluating() const {
     return isAtom() && !isSymbol();
 }
 
+bool Value::isProcedure() const {
+    return typeid(*this) == typeid(BuiltinProcValue) || typeid(*this) == typeid(LambdaValue);
+}
+
 bool Value::isList() const {
     auto current = this;
     while (!current->isNil()) {
@@ -59,14 +56,69 @@ bool Value::isList() const {
     return true;
 }
 
-bool Value::isProcedure() const {
-    return typeid(*this) == typeid(BuiltinProcValue) || typeid(*this) == typeid(LambdaValue);
-}
-
 bool Value::isTrue() const {
     if (!isBoolean()) return true;
     auto boolean = static_cast<const BooleanValue*>(this);
     return boolean->getValue();
+}
+
+std::optional<std::string> Value::getSymbolName() const {
+    if (isSymbol()) {
+        auto symbol = static_cast<const IdentifierValue*>(this);
+        return symbol->getName();
+    } else {
+        return std::nullopt;
+    }
+}
+
+bool Value::asBool() const {
+    return static_cast<const BooleanValue*>(this)->getValue();
+}
+
+double Value::asNumber() const {
+    return static_cast<const NumberValue*>(this)->getValue();
+}
+
+const std::string& Value::asString() const {
+    return static_cast<const StringValue*>(this)->getValue();
+}
+
+const PairValue& Value::asPair() const {
+    return static_cast<const PairValue&>(*this);
+}
+
+std::vector<ValuePtr> Value::toVector() const {
+    std::vector<ValuePtr> result;
+    auto current = this;
+    while (current->isPair()) {
+        auto [car, cdr] = static_cast<const PairValue&>(*current);
+        result.push_back(car);
+        current = cdr.get();
+    }
+    if (!current->isNil()) {
+        throw LispError("Malformed list: expected pair or nil, got " + current->toString() + ".");
+    }
+    return result;
+}
+
+ValuePtr Value::nil() {
+    return std::make_shared<NilValue>();
+}
+
+ValuePtr Value::fromBoolean(bool value) {
+    return std::make_shared<BooleanValue>(value);
+}
+
+ValuePtr Value::fromNumber(double value) {
+    return std::make_shared<NumberValue>(value);
+}
+
+ValuePtr Value::fromVector(const std::vector<ValuePtr>& values) {
+    ValuePtr result = Value::nil();
+    for (auto it = values.rbegin(); it != values.rend(); ++it) {
+        result = std::make_shared<PairValue>(*it, result);
+    }
+    return result;
 }
 
 std::string PairValue::toString() const {

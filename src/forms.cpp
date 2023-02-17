@@ -9,33 +9,24 @@
 std::vector<ValuePtr> checkOperandsCount(
     ValuePtr operands, std::size_t min = 0,
     std::size_t max = std::numeric_limits<std::size_t>::max()) {
-    auto current = operands;
-    std::vector<ValuePtr> result;
-    while (current->isPair()) {
-        auto [car, cdr] = static_cast<const PairValue&>(*current);
-        result.push_back(std::move(car));
-        current = std::move(cdr);
-    }
-    if (!current->isNil()) {
-        throw LispError("Malformed list " + operands->toString());
-    }
-    if (result.size() < min) {
-        throw LispError("Too few operands: " + std::to_string(result.size()) + " < " +
+    auto vec = operands->toVector();
+    if (vec.size() < min) {
+        throw LispError("Too few operands: " + std::to_string(vec.size()) + " < " +
                         std::to_string(min));
-    } else if (result.size() > max) {
-        throw LispError("Too many operands: " + std::to_string(result.size()) + " > " +
+    } else if (vec.size() > max) {
+        throw LispError("Too many operands: " + std::to_string(vec.size()) + " > " +
                         std::to_string(max));
     }
-    return result;
+    return vec;
 }
 
 ValuePtr lambdaForm(ValuePtr operands, EvaluateEnv& env) {
     checkOperandsCount(operands, 2);
-    auto [formals, body] = static_cast<const PairValue&>(*operands);
+    auto [formals, body] = operands->asPair();
     std::vector<std::string> params;
     std::unordered_set<std::string> paramSet;
     while (formals->isPair()) {
-        auto [car, cdr] = static_cast<const PairValue&>(*formals);
+        auto [car, cdr] = formals->asPair();
         if (auto name = car->getSymbolName()) {
             if (paramSet.count(*name)) {
                 throw LispError("Duplicate parameter name: " + *name);
@@ -59,8 +50,8 @@ ValuePtr defineForm(ValuePtr operands, EvaluateEnv& env) {
         env.defineBinding(*name, env.eval(args[1]));
         return args[0];
     } else if (args[0]->isPair()) {
-        auto [decl, body] = static_cast<const PairValue&>(*operands);
-        auto [car, cdr] = static_cast<const PairValue&>(*decl);
+        auto [decl, body] = operands->asPair();
+        auto [car, cdr] = decl->asPair();
         if (auto name = car->getSymbolName()) {
             auto proc = lambdaForm(std::make_shared<PairValue>(cdr, body), env);
             env.defineBinding(*name, proc);
@@ -77,7 +68,7 @@ ValuePtr quasiquoteItem(ValuePtr val, EvaluateEnv& env, std::size_t level) {
     if (!val->isPair()) {
         return val;
     }
-    auto [car, cdr] = static_cast<const PairValue&>(*val);
+    auto [car, cdr] = val->asPair();
     if (auto name = car->getSymbolName()) {
         if (*name == "unquote") {
             level--;
@@ -95,50 +86,50 @@ ValuePtr quasiquoteItem(ValuePtr val, EvaluateEnv& env, std::size_t level) {
 }
 
 ValuePtr quoteForm(ValuePtr operands, EvaluateEnv& env) {
-    auto args = checkOperandsCount(operands, 1, 1);
+    auto args = checkOperandsCount(std::move(operands), 1, 1);
     return args[0];
 }
 
 ValuePtr quasiquoteForm(ValuePtr operands, EvaluateEnv& env) {
-    auto args = checkOperandsCount(operands, 1, 1);
+    auto args = checkOperandsCount(std::move(operands), 1, 1);
     return quasiquoteItem(std::move(args[0]), env, 1);
 }
 
 ValuePtr beginForm(ValuePtr operands, EvaluateEnv& env) {
     checkOperandsCount(operands, 1);
-    auto result = env.evalList(operands);
+    auto result = env.evalList(std::move(operands));
     return std::move(result.back());
 }
 
 ValuePtr ifForm(ValuePtr operands, EvaluateEnv& env) {
     auto args = checkOperandsCount(operands, 2, 3);
-    if (env.eval(args[0])->isTrue()) {
-        return env.eval(args[1]);
+    if (env.eval(std::move(args[0]))->isTrue()) {
+        return env.eval(std::move(args[1]));
     } else if (args.size() == 3) {
-        return env.eval(args[2]);
+        return env.eval(std::move(args[2]));
     } else {
-        return std::make_shared<NilValue>();
+        return Value::nil();
     }
 }
 
 ValuePtr andForm(ValuePtr operands, EvaluateEnv& env) {
     if (operands->isPair()) {
-        auto [car, cdr] = static_cast<const PairValue&>(*operands);
+        auto [car, cdr] = operands->asPair();
         auto val = env.eval(std::move(car));
         if (!val->isTrue()) {
-            return std::make_shared<BooleanValue>(false);
+            return Value::fromBoolean(false);
         } else if (cdr->isNil()) {
             return val;
         } else {
             return andForm(std::move(cdr), env);
         }
     }
-    return std::make_shared<BooleanValue>(true);
+    return Value::fromBoolean(true);
 }
 
 ValuePtr orForm(ValuePtr operands, EvaluateEnv& env) {
     if (operands->isPair()) {
-        auto [car, cdr] = static_cast<const PairValue&>(*operands);
+        auto [car, cdr] = operands->asPair();
         auto val = env.eval(std::move(car));
         if (val->isTrue()) {
             return val;
@@ -146,17 +137,17 @@ ValuePtr orForm(ValuePtr operands, EvaluateEnv& env) {
             return orForm(std::move(cdr), env);
         }
     }
-    return std::make_shared<BooleanValue>(false);
+    return Value::fromBoolean(false);
 }
 
 ValuePtr condForm(ValuePtr operands, EvaluateEnv& env) {
-    while (operands->isPair()) {
-        auto [clause, rest] = static_cast<const PairValue&>(*operands);
+    auto vec = checkOperandsCount(operands);
+    for (auto clause : vec) {
         auto form = checkOperandsCount(clause, 1);
         ValuePtr test;
         if (auto name = form[0]->getSymbolName(); name && *name == "else") {
-            test = std::make_shared<BooleanValue>(true);
-            if (!rest->isNil()) {
+            test = Value::fromBoolean(true);
+            if (clause != vec.back()) {
                 throw LispError("else clause must be the last one");
             }
         } else {
@@ -168,28 +159,26 @@ ValuePtr condForm(ValuePtr operands, EvaluateEnv& env) {
             } else {
                 return test;
             }
-        } else {
-            operands = std::move(rest);
         }
     }
-    return std::make_shared<NilValue>();
+    return Value::nil();
 }
 
 ValuePtr letForm(ValuePtr operands, EvaluateEnv& env) {
     checkOperandsCount(operands, 2);
-    auto [car, cdr] = static_cast<const PairValue&>(*operands);
+    auto [car, cdr] = operands->asPair();
     auto bindings = checkOperandsCount(std::move(car));
-    EvaluateEnv newEnv(env);
+    auto newEnv = env.clone();
     for (auto binding : bindings) {
         auto vec = checkOperandsCount(std::move(binding), 2, 2);
         if (auto name = vec[0]->getSymbolName()) {
             auto val = env.eval(std::move(vec[1]));
-            newEnv.defineBinding(*name, std::move(val));
+            newEnv->defineBinding(*name, std::move(val));
         } else {
             throw LispError("Expect let binding name, found " + vec[0]->toString());
         }
     }
-    auto results = newEnv.evalList(std::move(cdr));
+    auto results = newEnv->evalList(std::move(cdr));
     return std::move(results.back());
 }
 

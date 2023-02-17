@@ -20,12 +20,16 @@ private:
 
     EvaluateEnv() {
         bindGlobals();
-    };
+    }
+    EvaluateEnv(const EvaluateEnv&) = default;
 
 public:
 
     static std::shared_ptr<EvaluateEnv> create() {
         return std::shared_ptr<EvaluateEnv>(new EvaluateEnv());
+    }
+    std::shared_ptr<EvaluateEnv> clone() const {
+        return std::shared_ptr<EvaluateEnv>(new EvaluateEnv(*this));
     }
 
     ValuePtr eval(ValuePtr expr);
