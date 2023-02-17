@@ -61,17 +61,10 @@ ValuePtr not_(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     checkArgsCount(args, 1);
     return Value::fromBoolean(!args[0]->isTrue());
 }
-ValuePtr eqQ(const std::vector<ValuePtr>& args, EvaluateEnv&) {
+ValuePtr eqQ(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
     checkArgsCount(args, 2);
-    if (args[0]->isNil() && args[1]->isNil()) {
-        return Value::fromBoolean(true);
-    }
-    return Value::fromBoolean(args[0] == args[1]);
-}
-ValuePtr equalQ(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
-    checkArgsCount(args, 2);
-    const auto& a = args[0];
-    const auto& b = args[1];
+    auto a = std::move(args[0]);
+    auto b = std::move(args[1]);
     const auto& rawA = *a;
     const auto& rawB = *b;
     if (typeid(rawA) != typeid(rawB)) {
@@ -81,27 +74,35 @@ ValuePtr equalQ(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
         auto aNum = a->asNumber();
         auto bNum = b->asNumber();
         return Value::fromBoolean(aNum == bNum);
-    } else if (a->isString()) {
-        auto&& aStr = a->asString();
-        auto&& bStr = b->asString();
-        return Value::fromBoolean(aStr == bStr);
-    } else if (a->isBoolean()) {
+    }  else if (a->isBoolean()) {
         auto aBool = a->asBool();
         auto bBool = b->asBool();
         return Value::fromBoolean(aBool == bBool);
     } else if (a->isSymbol()) {
-        auto aSym = static_cast<const IdentifierValue*>(a.get());
-        auto bSym = static_cast<const IdentifierValue*>(b.get());
+        auto aSym = a->getSymbolName();
+        auto bSym = b->getSymbolName();
         return Value::fromBoolean(*aSym == *bSym);
     } else if (a->isNil()) {
         return Value::fromBoolean(true);
-    } else if (a->isPair()) {
-        auto [aCar, aCdr] = a->asPair();
-        auto [bCar, bCdr] = b->asPair();
-        auto carResult = equalQ({aCar, bCar}, env);
-        auto cdrResult = equalQ({aCar, bCdr}, env);
-        return Value::fromBoolean(carResult->isTrue() && cdrResult->isTrue());
     } else {
+        return Value::fromBoolean(a == b);
+    }
+}
+ValuePtr equalQ(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
+    checkArgsCount(args, 2);
+    auto a = std::move(args[0]);
+    auto b = std::move(args[1]);
+    if (a->isPair() && b->isPair()) {
+        auto&& [aCar, aCdr] = a->asPair();
+        auto&& [bCar, bCdr] = b->asPair();
+        auto carResult = equalQ({aCar, bCar}, env);
+        auto cdrResult = equalQ({aCdr, bCdr}, env);
+        return Value::fromBoolean(carResult->isTrue() && cdrResult->isTrue());
+    } else if (a->isString() && b->isString()) {
+        auto&& aStr = a->asString();
+        auto&& bStr = b->asString();
+        return Value::fromBoolean(aStr == bStr);
+    }else {
         return eqQ(args, env);
     }
 }
@@ -126,7 +127,7 @@ ValuePtr car(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     if (!list->isPair()) {
         throw LispError("car: argument is not a pair");
     }
-    auto [car, cdr] = list->asPair();
+    auto&& [car, cdr] = list->asPair();
     return car;
 }
 ValuePtr cdr(const std::vector<ValuePtr>& args, EvaluateEnv&) {
@@ -135,7 +136,7 @@ ValuePtr cdr(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     if (!list->isPair()) {
         throw LispError("cdr: argument is not a pair");
     }
-    auto [car, cdr] = list->asPair();
+    auto&& [car, cdr] = list->asPair();
     return cdr;
 }
 
@@ -209,17 +210,26 @@ ValuePtr abs(const std::vector<ValuePtr>& args, EvaluateEnv&) {
 ValuePtr quotient(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     checkArgsCount(args, 2);
     auto [lhs, rhs] = extractNumbers(std::move(args[0]), std::move(args[1]));
-    return Value::fromNumber(std::floor(lhs / rhs));
+    return Value::fromNumber(int(lhs / rhs));
+}
+double lispModulo(double n, double m) {
+    double r = n - m * int(n / m);
+    // If m and r has different sign, adjust r
+    // Assume that double is IEEE 754 64-bit floating point
+    if ((*reinterpret_cast<std::int64_t*>(&m) ^ *reinterpret_cast<std::int64_t*>(&r)) < 0) {
+        r += m;
+    }
+    return r;
 }
 ValuePtr modulo(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     checkArgsCount(args, 2);
     auto [lhs, rhs] = extractNumbers(std::move(args[0]), std::move(args[1]));
-    return Value::fromNumber(std::fmod(lhs, rhs));
+    return Value::fromNumber(lispModulo(lhs, rhs)); 
 }
 ValuePtr remainder(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     checkArgsCount(args, 2);
     auto [lhs, rhs] = extractNumbers(std::move(args[0]), std::move(args[1]));
-    return Value::fromNumber(std::remainder(lhs, rhs));
+    return Value::fromNumber(std::fmod(lhs, rhs));
 }
 ValuePtr eq(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     checkArgsCount(args, 2);
@@ -326,10 +336,10 @@ ValuePtr reduce(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
     if (args[1]->isNil()) {
         throw LispError("reduce list must has at least 1 element");
     }
-    auto [init, rest] = args[1]->asPair();
-    auto proc = args[0];
+    auto [init, rest] = std::move(args[1]->asPair());
+    auto proc = std::move(args[0]);
     while (rest->isPair()) {
-        auto [car, cdr] = rest->asPair();
+        auto&& [car, cdr] = rest->asPair();
         init = env.apply(proc, {init, car});
         rest = std::move(cdr);
     }

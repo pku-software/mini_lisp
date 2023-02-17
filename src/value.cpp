@@ -62,12 +62,12 @@ bool Value::isTrue() const {
     return boolean->getValue();
 }
 
-std::optional<std::string> Value::getSymbolName() const {
+const std::string* Value::getSymbolName() const {
     if (isSymbol()) {
         auto symbol = static_cast<const IdentifierValue*>(this);
-        return symbol->getName();
+        return &symbol->getName();
     } else {
-        return std::nullopt;
+        return nullptr;
     }
 }
 
@@ -91,7 +91,7 @@ std::vector<ValuePtr> Value::toVector() const {
     std::vector<ValuePtr> result;
     auto current = this;
     while (current->isPair()) {
-        auto [car, cdr] = static_cast<const PairValue&>(*current);
+        auto&& [car, cdr] = static_cast<const PairValue&>(*current);
         result.push_back(car);
         current = cdr.get();
     }

@@ -12,7 +12,7 @@
 namespace rg = std::ranges;
 
 void EvaluateEnv::bindGlobals() {
-    for (const auto& [name, func] : BUILTINS) {
+    for (auto&& [name, func] : BUILTINS) {
         defineBinding(name, std::make_shared<BuiltinProcValue>(func));
     }
 }
@@ -56,7 +56,7 @@ ValuePtr EvaluateEnv::eval(ValuePtr expr) {
     if (!expr->isList()) {
         throw LispError("Malformed list " + expr->toString());
     }
-    auto [car, cdr] = expr->asPair();
+    auto&& [car, cdr] = expr->asPair();
     if (auto name = car->getSymbolName()) {
         if (auto it = SPECIAL_FORMS.find(*name); it != SPECIAL_FORMS.end()) {
             return it->second(std::move(cdr), *this);

@@ -22,11 +22,11 @@ std::vector<ValuePtr> checkOperandsCount(
 
 ValuePtr lambdaForm(ValuePtr operands, EvaluateEnv& env) {
     checkOperandsCount(operands, 2);
-    auto [formals, body] = operands->asPair();
+    auto [formals, body] = std::move(operands->asPair());
     std::vector<std::string> params;
     std::unordered_set<std::string> paramSet;
     while (formals->isPair()) {
-        auto [car, cdr] = formals->asPair();
+        auto&& [car, cdr] = formals->asPair();
         if (auto name = car->getSymbolName()) {
             if (paramSet.count(*name)) {
                 throw LispError("Duplicate parameter name: " + *name);
@@ -50,8 +50,8 @@ ValuePtr defineForm(ValuePtr operands, EvaluateEnv& env) {
         env.defineBinding(*name, env.eval(args[1]));
         return args[0];
     } else if (args[0]->isPair()) {
-        auto [decl, body] = operands->asPair();
-        auto [car, cdr] = decl->asPair();
+        auto&& [decl, body] = operands->asPair();
+        auto&& [car, cdr] = decl->asPair();
         if (auto name = car->getSymbolName()) {
             auto proc = lambdaForm(std::make_shared<PairValue>(cdr, body), env);
             env.defineBinding(*name, proc);
@@ -68,7 +68,7 @@ ValuePtr quasiquoteItem(ValuePtr val, EvaluateEnv& env, std::size_t level) {
     if (!val->isPair()) {
         return val;
     }
-    auto [car, cdr] = val->asPair();
+    auto&& [car, cdr] = val->asPair();
     if (auto name = car->getSymbolName()) {
         if (*name == "unquote") {
             level--;
@@ -114,7 +114,7 @@ ValuePtr ifForm(ValuePtr operands, EvaluateEnv& env) {
 
 ValuePtr andForm(ValuePtr operands, EvaluateEnv& env) {
     if (operands->isPair()) {
-        auto [car, cdr] = operands->asPair();
+        auto&& [car, cdr] = operands->asPair();
         auto val = env.eval(std::move(car));
         if (!val->isTrue()) {
             return Value::fromBoolean(false);
@@ -129,7 +129,7 @@ ValuePtr andForm(ValuePtr operands, EvaluateEnv& env) {
 
 ValuePtr orForm(ValuePtr operands, EvaluateEnv& env) {
     if (operands->isPair()) {
-        auto [car, cdr] = operands->asPair();
+        auto&& [car, cdr] = operands->asPair();
         auto val = env.eval(std::move(car));
         if (val->isTrue()) {
             return val;
@@ -166,7 +166,7 @@ ValuePtr condForm(ValuePtr operands, EvaluateEnv& env) {
 
 ValuePtr letForm(ValuePtr operands, EvaluateEnv& env) {
     checkOperandsCount(operands, 2);
-    auto [car, cdr] = operands->asPair();
+    auto&& [car, cdr] = operands->asPair();
     auto bindings = checkOperandsCount(std::move(car));
     auto newEnv = env.clone();
     for (auto binding : bindings) {

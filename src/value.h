@@ -34,7 +34,7 @@ public:
     bool isList() const;
     bool isTrue() const;
 
-    std::optional<std::string> getSymbolName() const;
+    const std::string* getSymbolName() const;
 
     bool asBool() const;
     double asNumber() const;
