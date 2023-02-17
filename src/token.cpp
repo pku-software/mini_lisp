@@ -3,10 +3,9 @@
 #include <iomanip>
 #include <sstream>
 
-
 using namespace std::literals;
 
-std::unique_ptr<Token> Token::fromChar(char c) {
+TokenPtr Token::fromChar(char c) {
     TokenType type;
     switch (c) {
         case '(': type = TokenType::LEFT_PAREN; break;

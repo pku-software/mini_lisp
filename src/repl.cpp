@@ -18,7 +18,7 @@ void handleEof() {}
 
 void readEvalPrintLoop() {
     std::string line;
-    std::deque<std::unique_ptr<Token>> tokens;
+    std::deque<TokenPtr> tokens;
     Reader reader(tokens, [&](bool topLevel) {
         std::cout << (topLevel ? ">>> " : " .. ");
         std::getline(std::cin, line);
@@ -49,7 +49,7 @@ void loadFile(const char* filename) {
         std::exit(1);
     }
     std::string line;
-    std::deque<std::unique_ptr<Token>> tokens;
+    std::deque<TokenPtr> tokens;
     while (std::getline(file, line)) {
         rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
     }

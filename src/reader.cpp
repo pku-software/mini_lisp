@@ -15,7 +15,7 @@ const Token* Reader::peek() {
     return tokens.front().get();
 }
 
-std::unique_ptr<Token> Reader::pop() {
+TokenPtr Reader::pop() {
     checkEmpty();
     auto top = std::move(tokens.front());
     tokens.pop_front();

@@ -6,17 +6,16 @@
 
 #include "./token.h"
 
-
 class Tokenizer {
 private:
-    std::unique_ptr<Token> nextToken(int& pos);
-    std::deque<std::unique_ptr<Token>> tokenize();
+    TokenPtr nextToken(int& pos);
+    std::deque<TokenPtr> tokenize();
 
     std::string input;
     Tokenizer(const std::string& input) : input{input} {}
 
 public:
-    static std::deque<std::unique_ptr<Token>> tokenize(const std::string& input);
+    static std::deque<TokenPtr> tokenize(const std::string& input);
 };
 
 #endif

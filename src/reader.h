@@ -11,18 +11,18 @@ using EofHandler = bool(bool);
 
 class Reader {
 private:
-    std::deque<std::unique_ptr<Token>>& tokens;
+    std::deque<TokenPtr>& tokens;
     std::function<EofHandler> eofHandler;
     bool topLevel{true};
 
     void checkEmpty();
     const Token* peek();
-    std::unique_ptr<Token> pop();
+    TokenPtr pop();
     std::unique_ptr<Value> readValue();
     std::unique_ptr<Value> readTails();
 
 public:
-    Reader(std::deque<std::unique_ptr<Token>>& tokenSrc, std::function<EofHandler> eofHandler = {})
+    Reader(std::deque<TokenPtr>& tokenSrc, std::function<EofHandler> eofHandler = {})
         : tokens{tokenSrc}, eofHandler{std::move(eofHandler)} {}
 
     std::unique_ptr<Value> read();

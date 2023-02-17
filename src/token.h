@@ -6,7 +6,6 @@
 #include <ostream>
 #include <string>
 
-
 enum class TokenType {
     LEFT_PAREN,
     RIGHT_PAREN,
@@ -19,6 +18,9 @@ enum class TokenType {
     IDENTIFIER,
 };
 
+class Token;
+using TokenPtr = std::unique_ptr<Token>;
+
 class Token {
 private:
     TokenType type;
@@ -29,7 +31,7 @@ protected:
 public:
     virtual ~Token() = default;
 
-    static std::unique_ptr<Token> fromChar(char c);
+    static TokenPtr fromChar(char c);
 
     TokenType getType() const {
         return type;

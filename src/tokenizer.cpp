@@ -8,7 +8,7 @@
 
 const std::set<char> TOKEN_END{'(', ')', '\'', '`', ',', '"'};
 
-std::unique_ptr<Token> Tokenizer::nextToken(int& pos) {
+TokenPtr Tokenizer::nextToken(int& pos) {
     while (pos < input.size()) {
         auto c = input[pos];
         if (c == ';') {
@@ -70,8 +70,8 @@ std::unique_ptr<Token> Tokenizer::nextToken(int& pos) {
     return nullptr;
 }
 
-std::deque<std::unique_ptr<Token>> Tokenizer::tokenize() {
-    std::deque<std::unique_ptr<Token>> tokens;
+std::deque<TokenPtr> Tokenizer::tokenize() {
+    std::deque<TokenPtr> tokens;
     int pos = 0;
     while (true) {
         auto token = nextToken(pos);
@@ -83,6 +83,6 @@ std::deque<std::unique_ptr<Token>> Tokenizer::tokenize() {
     return tokens;
 }
 
-std::deque<std::unique_ptr<Token>> Tokenizer::tokenize(const std::string& input) {
+std::deque<TokenPtr> Tokenizer::tokenize(const std::string& input) {
     return Tokenizer(input).tokenize();
 }
