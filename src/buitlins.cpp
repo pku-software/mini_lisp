@@ -7,7 +7,6 @@
 #include "./error.h"
 #include "./eval_env.h"
 
-
 void checkArgsCount(const std::vector<ValuePtr>& args, std::size_t min, std::size_t max) {
     if (args.size() < min) {
         throw LispError("Too few arguments: " + std::to_string(args.size()) + " < " +
@@ -60,6 +59,9 @@ ValuePtr not_(const std::vector<ValuePtr>& args, EvaluateEnv&) {
 }
 ValuePtr eqQ(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     checkArgsCount(args, 2);
+    if (args[0]->isNil() && args[1]->isNil()) {
+        return std::make_shared<BooleanValue>(true);
+    }
     return std::make_shared<BooleanValue>(args[0] == args[1]);
 }
 ValuePtr equalQ(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
@@ -292,7 +294,7 @@ ValuePtr display(const std::vector<ValuePtr>& args, EvaluateEnv&) {
 }
 ValuePtr print(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     for (auto arg : args) {
-        std::cout << arg->toString() << "\n";
+        arg->print();
     }
     return std::make_shared<NilValue>();
 }

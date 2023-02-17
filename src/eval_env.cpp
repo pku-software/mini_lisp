@@ -2,13 +2,12 @@
 
 #include <iterator>
 #include <memory>
-#include <ranges>
+#include <algorithm>
 #include <string>
 
 #include "./builtins.h"
 #include "./error.h"
 #include "./forms.h"
-
 
 namespace rg = std::ranges;
 
@@ -18,9 +17,11 @@ void EvaluateEnv::bindGlobals() {
     }
 }
 
-EvaluateEnv EvaluateEnv::createChildEnv(const std::vector<std::string>& params, const std::vector<ValuePtr>& args) const {
+EvaluateEnv EvaluateEnv::createChildEnv(const std::vector<std::string>& params,
+                                        const std::vector<ValuePtr>& args) const {
     if (params.size() != args.size()) {
-        throw LispError("Procedure expected " + std::to_string(params.size()) + " parameters, got " + std::to_string(args.size()));
+        throw LispError("Procedure expected " + std::to_string(params.size()) +
+                        " parameters, got " + std::to_string(args.size()));
     }
     EvaluateEnv childEnv(*this);
     for (std::size_t i = 0; i < params.size(); i++) {
@@ -76,7 +77,7 @@ std::vector<ValuePtr> EvaluateEnv::evalList(ValuePtr expr) {
     auto car_ = eval(std::move(car));
     auto cdr_ = evalList(std::move(cdr));
     std::vector result{car_};
-    rg::copy(cdr_, std::back_inserter(result));
+    rg::move(std::move(cdr_), std::back_inserter(result));
     return result;
 }
 

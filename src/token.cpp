@@ -1,7 +1,8 @@
 #include "./token.h"
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
+
 
 using namespace std::literals;
 
@@ -10,7 +11,7 @@ std::unique_ptr<Token> Token::fromChar(char c) {
     switch (c) {
         case '(': type = TokenType::LEFT_PAREN; break;
         case ')': type = TokenType::RIGHT_PAREN; break;
-        case '\'':type = TokenType::QUOTE; break;
+        case '\'': type = TokenType::QUOTE; break;
         case '`': type = TokenType::QUASIQUOTE; break;
         case ',': type = TokenType::UNQUOTE; break;
         default: return nullptr;
@@ -19,7 +20,8 @@ std::unique_ptr<Token> Token::fromChar(char c) {
 }
 
 bool Token::isDot() const {
-    return type == TokenType::IDENTIFIER && static_cast<const IdentifierToken&>(*this).getName() == ".";
+    return type == TokenType::IDENTIFIER &&
+           static_cast<const IdentifierToken&>(*this).getName() == ".";
 }
 
 std::optional<std::string> Token::getQuoteName() const {
@@ -67,7 +69,7 @@ std::string BooleanLiteralToken::toString() const {
 }
 
 std::string NumericLiteralToken::toString() const {
-    return"(NUMERIC_LITERAL " + std::to_string(value) + ")";
+    return "(NUMERIC_LITERAL " + std::to_string(value) + ")";
 }
 
 std::string StringLiteralToken::toString() const {

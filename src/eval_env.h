@@ -2,18 +2,20 @@
 #define EVALUATOR_H
 
 #include <memory>
-#include <vector>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "./value.h"
+
 
 class EvaluateEnv {
 private:
     std::unordered_map<std::string, ValuePtr> bindings;
 
     void bindGlobals();
-    EvaluateEnv createChildEnv(const std::vector<std::string>& params, const std::vector<ValuePtr>& args) const;
+    EvaluateEnv createChildEnv(const std::vector<std::string>& params,
+                               const std::vector<ValuePtr>& args) const;
 
 public:
     EvaluateEnv() {

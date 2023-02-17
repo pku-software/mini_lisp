@@ -1,7 +1,9 @@
 #include "./value.h"
 
-#include <iomanip>
 #include <cmath>
+#include <iomanip>
+#include <iostream>
+
 
 std::optional<std::string> Value::getSymbolName() const {
     if (isSymbol()) {
@@ -84,7 +86,8 @@ std::string PairValue::toString() const {
 }
 
 std::string NumberValue::toString() const {
-    return value == std::floor(value) && std::isfinite(value) ? std::to_string(std::int64_t(value)) : std::to_string(value);
+    return value == std::floor(value) && std::isfinite(value) ? std::to_string(std::int64_t(value))
+                                                              : std::to_string(value);
 }
 
 std::string StringValue::toString() const {
@@ -99,6 +102,14 @@ std::string BuiltinProcValue::toString() const {
 
 std::string LambdaValue::toString() const {
     return "#<procedure>";
+}
+
+std::ostream& Value::print() const {
+    if (isSymbol() || isPair() || isNil()) {
+        return std::cout << '\'' << toString() << std::endl;
+    } else {
+        return std::cout << toString() << std::endl;
+    }
 }
 
 std::ostream& operator<<(std::ostream& os, const Value& value) {

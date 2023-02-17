@@ -1,34 +1,66 @@
-#include <string>
-#include <iostream>
-#include <iomanip>
+#include "./repl.h"
 
-#include "./tokenizer.h"
-#include "./reader.h"
-#include "./eval_env.h"
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <memory>
+#include <string>
+
 #include "./error.h"
+#include "./eval_env.h"
+#include "./reader.h"
+#include "./tokenizer.h"
+
+namespace rg = std::ranges;
+
+void handleEof() {}
 
 void readEvalPrintLoop() {
     std::string line;
-    EvaluateEnv evalEnv;
-    while (true) {
-        std::cout << ">>> ";
+    std::deque<std::unique_ptr<Token>> tokens;
+    Reader reader(tokens, [&](bool topLevel) {
+        std::cout << (topLevel ? ">>> " : " .. ");
         std::getline(std::cin, line);
         if (std::cin.eof()) {
-            break;
+            return false;
         }
+        rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
+        return true;
+    });
+    EvaluateEnv evalEnv;
+    while (true) {
         try {
-            auto tokens = Tokenizer(line).tokenize();
-            Reader reader(std::move(tokens));
             std::shared_ptr value = reader.read();
             auto result = evalEnv.eval(value);
-            if (result->isSymbol() || result->isPair() || result->isNil()) {
-                std::cout << "'";
-            }
-            std::cout << *result;
-        } catch (EOFError& e) {
+            result->print();
+        } catch (EOFError&) {
+            break;
         } catch (std::runtime_error& e) {
-            std::cerr << "Error: " << e.what();
+            std::cerr << "Error: " << e.what() << std::endl;
         }
-        std::cout << std::endl;
+    }
+}
+
+void loadFile(const char* filename) {
+    std::ifstream file(filename);
+    if (!file) {
+        std::cerr << "Error: Cannot open file " << filename << std::endl;
+        std::exit(1);
+    }
+    std::string line;
+    std::deque<std::unique_ptr<Token>> tokens;
+    while (std::getline(file, line)) {
+        rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
+    }
+    EvaluateEnv evalEnv;
+    Reader reader(tokens);
+    try {
+        while (true) {
+            evalEnv.eval(reader.read());
+        }
+    } catch (EOFError&) {
+    } catch (std::runtime_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
     }
 }

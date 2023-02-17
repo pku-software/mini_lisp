@@ -1,10 +1,11 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include <string>
 #include <memory>
 #include <optional>
 #include <ostream>
+#include <string>
+
 
 enum class TokenType {
     LEFT_PAREN,
@@ -57,7 +58,7 @@ public:
 class NumericLiteralToken : public Token {
 private:
     double value;
-    
+
 public:
     NumericLiteralToken(double value) : Token(TokenType::NUMERIC_LITERAL), value{value} {}
 

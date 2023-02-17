@@ -9,12 +9,13 @@
 #include <string>
 #include <vector>
 
-
 class Value {
 public:
     virtual std::string toString() const = 0;
     virtual ~Value() = default;
     auto operator<=>(const Value&) const = default;
+
+    std::ostream& print() const;
 
     std::optional<std::string> getSymbolName() const;
     bool isSymbol() const;
@@ -25,9 +26,9 @@ public:
     bool isPair() const;
     bool isAtom() const;
     bool isSelfEvaluating() const;
-    bool isList() const;
     bool isProcedure() const;
 
+    bool isList() const;
     bool isTrue() const;
 };
 

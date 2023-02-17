@@ -2,19 +2,29 @@
 
 #include "./error.h"
 
-const Token* Reader::peek() const {
-    if (empty()) {
-        throw EOFError();
+void Reader::checkEmpty() {
+    while (tokens.empty()) {
+        if (!eofHandler || !eofHandler(topLevel)) {
+            throw EOFError();
+        }
     }
+}
+
+const Token* Reader::peek() {
+    checkEmpty();
     return tokens.front().get();
 }
 
-std::unique_ptr<Value> Reader::read() {
-    if (empty()) {
-        throw EOFError();
-    }
-    auto token = std::move(tokens.front());
+std::unique_ptr<Token> Reader::pop() {
+    checkEmpty();
+    auto top = std::move(tokens.front());
     tokens.pop_front();
+    return top;
+}
+
+std::unique_ptr<Value> Reader::readValue() {
+    auto token = pop();
+    topLevel = false;
     if (token->getType() == TokenType::LEFT_PAREN) {
         auto next = peek();
         if (next->isDot()) {
@@ -43,28 +53,29 @@ std::unique_ptr<Value> Reader::read() {
 }
 
 std::unique_ptr<Value> Reader::readTails() {
-    if (empty()) {
-        throw SyntaxError("Unexpected EOF");
-    }
     auto next = peek();
     if (next->getType() == TokenType::RIGHT_PAREN) {
         tokens.pop_front();
         return std::make_unique<NilValue>();
     } else if (next->isDot()) {
         tokens.pop_front();
-        auto value = read();
-        if (empty()) {
-            throw SyntaxError("Unexpected EOF");
+        auto value = readValue();
+        if (tokens.empty()) {
+            throw SyntaxError("Unexpected EOF; expect an element after .");
         }
-        auto token = std::move(tokens.front());
-        tokens.pop_front();
+        auto token = pop();
         if (token->getType() != TokenType::RIGHT_PAREN) {
             throw SyntaxError("Expected exactly one element after .");
         }
         return value;
     } else {
-        auto car = read();
+        auto car = readValue();
         auto cdr = readTails();
         return std::make_unique<PairValue>(std::move(car), std::move(cdr));
     }
+}
+
+std::unique_ptr<Value> Reader::read() {
+    topLevel = true;
+    return readValue();
 }
