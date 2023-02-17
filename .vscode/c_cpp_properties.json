@@ -1,0 +1,15 @@
+{
+    // 若 C/C++ 智能提示响应缓慢，可以改用 Clangd：
+    // 在 settings.json 中添加 "C_Cpp.intelliSenseEngine": "disabled"
+    // 并安装 Clangd 插件。
+    // (如果只想在此工作文件夹启用 Clangd，则全局禁用 Clangd，并只在工作区启用 Clangd)
+    // 执行 xmake project -kcompile_commands 更新 IntelliSense
+    // (你可以修改 tasks.json 中生成智能提示的命令以配合工作)
+    "configurations": [
+        {
+            "name": "Win32",
+            "compileCommands": "${workspaceFolder}/.vscode/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

@@ -1,5 +1,3 @@
-// 除非您清楚您在做什么，否则请勿修改此文件。
-// VS Code 任务设置
 {
     "version": "2.0.0",
     "tasks": [
@@ -11,7 +9,8 @@
           "project",
           "-k",
           "compile_commands",
-          "${workspaceFolder}\\.vscode"
+          // 如果使用 clangd，则改为 "${workspaceFolder}"
+          "${workspaceFolder}/.vscode"
         ],
         "presentation": {
           "echo": true,
@@ -39,9 +38,12 @@
           "showReuseMessage": true,
           "clear": true
         },
-        "problemMatcher": "$msCompile" // 如果你使用 MSVC，请更改为 $msCompile
+        // 如果你使用 MSVC，设置为 "$msCompile"；
+        // 否则，设置为 "$gcc"
+        "problemMatcher": "$msCompile"
       },
       // 运行任务（F6）
+      // 需要安装 Console Pauser 扩展
       {
         "label": "run and pause",
         "dependsOn": "xmake build",
