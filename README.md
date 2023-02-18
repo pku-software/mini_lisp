@@ -30,7 +30,7 @@ xmake f
 
 首先安装 [Xmake VS Code 扩展](https://marketplace.visualstudio.com/items?itemName=tboox.xmake-vscode) 以启用调试功能。
 
-请在正确配置 launch.json 的前提下，选择菜单栏“运行->开始调试”或者在调试活动栏中点击“播放”按钮以调试。
+请在正确配置 `launch.json` 的前提下，选择菜单栏“运行->开始调试”或者在调试活动栏中点击“播放”按钮以调试。
 
 > **Warning**
 >
