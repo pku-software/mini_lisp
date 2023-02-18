@@ -14,8 +14,6 @@
 
 namespace rg = std::ranges;
 
-void handleEof() {}
-
 void readEvalPrintLoop() {
     std::string line;
     std::deque<TokenPtr> tokens;

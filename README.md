@@ -11,10 +11,10 @@
 4. 在 VS Code 的终端中执行如下 Configure 命令：
 
 ```
-xmake f
+xmake f -mdebug
 ```
 
-**如果你在 Windows 上使用 MinGW，则将上述命令改为 `xmake f -pmingw`。**
+**如果你在 Windows 上使用 MinGW，则将上述命令改为 `xmake f -pmingw -mdebug`。**
 
 ## 编辑代码
 
