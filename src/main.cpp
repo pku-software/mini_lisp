@@ -1,3 +1,5 @@
+#ifndef WASM
+
 #include "./repl.h"
 
 int main(int argc, char** argv) {
@@ -7,3 +9,5 @@ int main(int argc, char** argv) {
         loadFile(argv[1]);
     }
 }
+
+#endif
