@@ -1,18 +1,14 @@
 {
     "version": "0.2.0",
-    // 安装 Xmake VS Code 扩展以启用调试功能
-    // 注意：请不要通过 F5、Xmake 侧边活动栏或底部状态栏调试（不稳定，易出问题）
-    // 请在正确配置 launch.json 的前提下，菜单栏“运行->开始调试”或者在调试活动栏中点击“播放”按钮
-    // 注：若想使用 F5 快捷键，建议前往“文件->首选项->键盘快捷方式”，删除 Xmake Debug 命令的快捷键
     "configurations": [
         {
-            "type": "xmake",
-            "name": "Xmake Debug",
+            "name": "(vsdbg) Launch",
+            "type": "cppvsdbg",
             "request": "launch",
-            "target": "mini_lisp",
-            "stopAtEntry": false,
+            "program": "${workspaceFolder}\\bin\\mini_lisp.exe",
             "preLaunchTask": "xmake build",
-            "terminal": "external"
+            "cwd": "${workspaceFolder}",
+            "console": "externalTerminal"
         }
     ]
 }
