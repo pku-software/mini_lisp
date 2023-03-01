@@ -69,8 +69,7 @@ ValuePtr EvaluateEnv::eval(ValuePtr expr) {
 
 std::vector<ValuePtr> EvaluateEnv::evalList(ValuePtr expr) {
     std::vector<ValuePtr> result;
-    auto list = expr->toVector();
-    std::transform(list.begin(), list.end(), std::back_inserter(result),
+    rg::transform(expr->toVector(), std::back_inserter(result),
                   [this](ValuePtr v) { return eval(std::move(v)); });
     return result;
 }

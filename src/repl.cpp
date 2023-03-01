@@ -23,8 +23,7 @@ void readEvalPrintLoop() {
         if (std::cin.eof()) {
             return false;
         }
-        auto newTokens = Tokenizer::tokenize(line);
-        std::move(newTokens.begin(), newTokens.end(), std::back_inserter(tokens));
+        rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
         return true;
     });
     auto env = EvaluateEnv::create();
@@ -50,8 +49,7 @@ void loadFile(const char* filename) {
     std::string line;
     std::deque<TokenPtr> tokens;
     while (std::getline(file, line)) {
-        auto newTokens = Tokenizer::tokenize(line);
-        std::move(newTokens.begin(), newTokens.end(), std::back_inserter(tokens));
+        rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
     }
     auto env = EvaluateEnv::create();
     Reader reader(tokens);

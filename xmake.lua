@@ -7,6 +7,6 @@ target("mini_lisp")
   if is_plat("wasm") then
     add_defines("WASM")
     add_links("embind")
-    add_cxflags("-fwasm-exceptions")
+    add_cxflags("-fwasm-exceptions", "-fexperimental-library")
     add_ldflags("-fwasm-exceptions")
   end

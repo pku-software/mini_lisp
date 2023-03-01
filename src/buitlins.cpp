@@ -8,6 +8,9 @@
 #include "./error.h"
 #include "./eval_env.h"
 
+
+namespace rg = std::ranges;
+
 void checkArgsCount(const std::vector<ValuePtr>& args, std::size_t min, std::size_t max) {
     if (args.size() < min) {
         throw LispError("Too few arguments: " + std::to_string(args.size()) + " < " +
@@ -311,9 +314,8 @@ ValuePtr error(const std::vector<ValuePtr>& args, EvaluateEnv&) {
 ValuePtr map(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
     checkArgsCount(args, 2, 2);
     auto proc = args[0];
-    auto list = args[1]->toVector();
     std::vector<ValuePtr> mapped;
-    std::transform(list.begin(), list.end(), std::back_inserter(mapped),
+    rg::transform(args[1]->toVector(), std::back_inserter(mapped),
                   [&](ValuePtr v) { return env.apply(proc, {std::move(v)}); });
     return Value::fromVector(mapped);
 }
@@ -321,9 +323,8 @@ ValuePtr map(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
 ValuePtr filter(const std::vector<ValuePtr>& args, EvaluateEnv& env) {
     checkArgsCount(args, 2, 2);
     auto proc = args[0];
-    auto list = args[1]->toVector();
     std::vector<ValuePtr> filtered;
-    std::copy_if(list.begin(), list.end(), std::back_inserter(filtered),
+    rg::copy_if(args[1]->toVector(), std::back_inserter(filtered),
                 [&](ValuePtr v) { return env.apply(proc, {std::move(v)})->isTrue(); });
     return Value::fromVector(filtered);
 }
