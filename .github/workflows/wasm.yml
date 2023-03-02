@@ -1,0 +1,21 @@
+name: wasm
+
+on: [push]
+
+jobs:
+  build:
+    steps:
+    - uses: mymindstorm/setup-emsdk@v11
+      with:
+        version: 3.1.32
+    - uses: xmake-io/github-action-setup-xmake@v1
+      with:
+        xmake-version: latest
+    - run: xmake f -y -p mingw
+    - run: xmake b -y
+    - uses: actions/upload-artifact@v3
+      with:
+        name: mini_lisp_wasm
+        path: |
+          bin/mini_lisp.js
+          bin/mini_lisp.wasm
