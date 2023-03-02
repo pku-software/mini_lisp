@@ -4,14 +4,16 @@ on: [push]
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - uses: mymindstorm/setup-emsdk@v11
       with:
         version: 3.1.32
     - uses: xmake-io/github-action-setup-xmake@v1
       with:
         xmake-version: latest
-    - run: xmake f -y -p mingw
+    - run: xmake f -y -p wasm
     - run: xmake b -y
     - uses: actions/upload-artifact@v3
       with:
