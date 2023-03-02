@@ -13,7 +13,7 @@ jobs:
     - uses: xmake-io/github-action-setup-xmake@v1
       with:
         xmake-version: latest
-    - run: xmake f -y -p wasm
+    - run: xmake f -y -p wasm -m debug
     - run: xmake b -y
     - uses: actions/upload-artifact@v3
       with:
