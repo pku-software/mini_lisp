@@ -6,6 +6,6 @@ target("mini_lisp")
   set_targetdir("bin")
   if is_plat("wasm") then
     add_links("embind")
-    add_cxflags("-fwasm-exceptions", "-fexperimental-library")
-    add_ldflags("-fwasm-exceptions")
+    add_cxflags("-fwasm-exceptions", "-sASSERTIONS", "-fexperimental-library")
+    add_ldflags("-fwasm-exceptions", "-sASSERTIONS")
   end
