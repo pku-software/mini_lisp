@@ -1,4 +1,4 @@
-#ifndef WASM
+#ifndef __EMSCRIPTEN__
 
 #include "./repl.h"
 

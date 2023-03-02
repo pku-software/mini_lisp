@@ -1,26 +1,27 @@
-#include "./wasm_env.h"
+#ifdef __EMSCRIPTEN__
 
-#ifdef WASM
 #include <emscripten/bind.h>
-#endif
 
+#include "./eval_env.h"
 #include "./reader.h"
 #include "./tokenizer.h"
 
-WasmEnv::WasmEnv(): env{EvaluateEnv::create()} {}
+class WasmEnv {
+private:
+    std::shared_ptr<EvaluateEnv> env;
 
-std::string WasmEnv::eval(const std::string& code) {
-    auto tokens = Tokenizer::tokenize(code);
-    Reader reader(tokens);
-    return env->eval(reader.read())->toString();
-}
+public:
+    WasmEnv() : env{EvaluateEnv::create()} {}
 
-#ifdef WASM
-
-using namespace emscripten;
+    std::string eval(const std::string& code) {
+        auto tokens = Tokenizer::tokenize(code);
+        Reader reader(tokens);
+        return env->eval(reader.read())->toString();
+    }
+};
 
 EMSCRIPTEN_BINDINGS(mini_lisp) {
-    class_<WasmEnv>("WasmEnv")
+    emscripten::class_<WasmEnv>("WasmEnv")
         .constructor()
         .function("eval", &WasmEnv::eval);
 }
