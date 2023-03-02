@@ -29,8 +29,7 @@ void readEvalPrintLoop() {
     auto env = EvaluateEnv::create();
     while (true) {
         try {
-            std::shared_ptr value = reader.read();
-            auto result = env->eval(value);
+            auto result = env->eval(reader.read());
             result->print();
         } catch (EOFError&) {
             break;

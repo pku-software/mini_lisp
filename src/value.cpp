@@ -37,7 +37,7 @@ bool Value::isAtom() const {
 }
 
 bool Value::isSelfEvaluating() const {
-    return isAtom() && !isSymbol();
+    return isBoolean() || isNumber() || isString();
 }
 
 bool Value::isProcedure() const {

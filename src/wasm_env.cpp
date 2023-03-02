@@ -16,7 +16,12 @@ public:
     std::string eval(const std::string& code) {
         auto tokens = Tokenizer::tokenize(code);
         Reader reader(tokens);
-        return env->eval(reader.read())->toString();
+        auto result = env->eval(reader.read());
+        if (result->isSymbol() || result->isPair() || result->isNil()) {
+            return "'" + result->toString();
+        } else {
+            return result->toString();
+        }
     }
 };
 

@@ -52,8 +52,9 @@ ValuePtr EvaluateEnv::eval(ValuePtr expr) {
         return v;
     } else if (expr->isSelfEvaluating()) {
         return expr;
-    }
-    if (!expr->isList()) {
+    } else if (expr->isNil()) {
+        throw LispError("Shouldn't evaluate empty list");
+    } else if (!expr->isList()) {
         throw LispError("Malformed list " + expr->toString());
     }
     auto&& [car, cdr] = expr->asPair();
