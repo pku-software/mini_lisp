@@ -58,6 +58,9 @@ TokenPtr Tokenizer::nextToken(int& pos) {
             } while (pos < input.size() && !std::isspace(input[pos]) &&
                      !TOKEN_END.contains(input[pos]));
             auto text = input.substr(start, pos - start);
+            if (text == ".") {
+                return Token::dot();
+            }
             if (std::isdigit(text[0]) || text[0] == '+' || text[0] == '-' || text[0] == '.') {
                 try {
                     return std::make_unique<NumericLiteralToken>(std::stod(text));

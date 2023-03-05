@@ -13,14 +13,14 @@ TokenPtr Token::fromChar(char c) {
         case '\'': type = TokenType::QUOTE; break;
         case '`': type = TokenType::QUASIQUOTE; break;
         case ',': type = TokenType::UNQUOTE; break;
+        // DOT not listed here, because it can be part of identifier/literal.
         default: return nullptr;
     }
-    return std::make_unique<Token>(Token(type));
+    return TokenPtr(new Token(type));
 }
 
-bool Token::isDot() const {
-    return type == TokenType::IDENTIFIER &&
-           static_cast<const IdentifierToken&>(*this).getName() == ".";
+TokenPtr Token::dot() {
+    return TokenPtr(new Token(TokenType::DOT));
 }
 
 std::optional<std::string> Token::getQuoteName() const {
@@ -39,6 +39,7 @@ std::string Token::toString() const {
         case TokenType::QUOTE: return "(QUOTE)"; break;
         case TokenType::QUASIQUOTE: return "(QUASIQUOTE)"; break;
         case TokenType::UNQUOTE: return "(UNQUOTE)"; break;
+        case TokenType::DOT: return "(DOT)"; break;
         default: return "(UNKNOWN)";
     }
 }

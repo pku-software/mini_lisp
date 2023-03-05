@@ -27,9 +27,6 @@ std::unique_ptr<Value> Reader::readValue() {
     topLevel = false;
     if (token->getType() == TokenType::LEFT_PAREN) {
         auto next = peek();
-        if (next->isDot()) {
-            throw SyntaxError(". cannot be the first token in a list");
-        }
         return readTails();
     } else if (auto quoteName = token->getQuoteName()) {
         return std::make_unique<PairValue>(
@@ -53,13 +50,15 @@ std::unique_ptr<Value> Reader::readValue() {
 }
 
 std::unique_ptr<Value> Reader::readTails() {
-    auto next = peek();
-    if (next->getType() == TokenType::RIGHT_PAREN) {
+    if (peek()->getType() == TokenType::RIGHT_PAREN) {
         tokens.pop_front();
         return std::make_unique<NilValue>();
-    } else if (next->isDot()) {
+    }
+    auto car = readValue();
+    std::unique_ptr<Value> cdr;
+    if (peek()->getType() == TokenType::DOT) {
         tokens.pop_front();
-        auto value = readValue();
+        cdr = readValue();
         if (tokens.empty()) {
             throw SyntaxError("Unexpected EOF; expect an element after .");
         }
@@ -67,12 +66,10 @@ std::unique_ptr<Value> Reader::readTails() {
         if (token->getType() != TokenType::RIGHT_PAREN) {
             throw SyntaxError("Expected exactly one element after .");
         }
-        return value;
     } else {
-        auto car = readValue();
-        auto cdr = readTails();
-        return std::make_unique<PairValue>(std::move(car), std::move(cdr));
+        cdr = readTails();
     }
+    return std::make_unique<PairValue>(std::move(car), std::move(cdr));
 }
 
 std::unique_ptr<Value> Reader::read() {

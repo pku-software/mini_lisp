@@ -35,6 +35,7 @@ void readEvalPrintLoop() {
             break;
         } catch (std::runtime_error& e) {
             std::cerr << "Error: " << e.what() << std::endl;
+            tokens.clear();
         }
     }
 }
@@ -59,5 +60,6 @@ void loadFile(const char* filename) {
     } catch (EOFError&) {
     } catch (std::runtime_error& e) {
         std::cerr << "Error: " << e.what() << std::endl;
+        tokens.clear();
     }
 }

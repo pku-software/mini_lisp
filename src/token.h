@@ -12,6 +12,7 @@ enum class TokenType {
     QUOTE,
     QUASIQUOTE,
     UNQUOTE,
+    DOT,
     BOOLEAN_LITERAL,
     NUMERIC_LITERAL,
     STRING_LITERAL,
@@ -32,11 +33,11 @@ public:
     virtual ~Token() = default;
 
     static TokenPtr fromChar(char c);
+    static TokenPtr dot();
 
     TokenType getType() const {
         return type;
     }
-    bool isDot() const;
     std::optional<std::string> getQuoteName() const;
     virtual std::string toString() const;
 };
