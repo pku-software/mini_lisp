@@ -11,19 +11,22 @@
 
 namespace rg = std::ranges;
 
-void EvaluateEnv::bindGlobals() {
+std::shared_ptr<EvaluateEnv> EvaluateEnv::createGlobal() {
+    std::shared_ptr<EvaluateEnv> env(new EvaluateEnv());
     for (auto&& [name, func] : BUILTINS) {
-        defineBinding(name, std::make_shared<BuiltinProcValue>(func));
+        env->defineBinding(name, std::make_shared<BuiltinProcValue>(func));
     }
+    return env;
 }
 
-std::shared_ptr<EvaluateEnv> EvaluateEnv::createChildEnv(const std::vector<std::string>& params,
-                                                         const std::vector<ValuePtr>& args) const {
+std::shared_ptr<EvaluateEnv> EvaluateEnv::createChild(const std::vector<std::string>& params,
+                                                         const std::vector<ValuePtr>& args) {
     if (params.size() != args.size()) {
         throw LispError("Procedure expected " + std::to_string(params.size()) +
                         " parameters, got " + std::to_string(args.size()));
     }
-    auto childEnv = clone();
+    std::shared_ptr<EvaluateEnv> childEnv(new EvaluateEnv());
+    childEnv->parent = shared_from_this();
     for (std::size_t i = 0; i < params.size(); i++) {
         childEnv->defineBinding(params[i], args[i]);
     }
@@ -82,7 +85,7 @@ void EvaluateEnv::defineBinding(const std::string& name, ValuePtr value) {
 ValuePtr EvaluateEnv::lookupBinding(const std::string& name) const {
     auto it = bindings.find(name);
     if (it == bindings.end()) {
-        return nullptr;
+        return parent ? parent->lookupBinding(name) : nullptr;
     }
     return it->second;
 }

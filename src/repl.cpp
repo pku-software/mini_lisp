@@ -26,7 +26,7 @@ void readEvalPrintLoop() {
         rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
         return true;
     });
-    auto env = EvaluateEnv::create();
+    auto env = EvaluateEnv::createGlobal();
     while (true) {
         try {
             auto result = env->eval(reader.read());
@@ -51,7 +51,7 @@ void loadFile(const char* filename) {
     while (std::getline(file, line)) {
         rg::move(Tokenizer::tokenize(line), std::back_inserter(tokens));
     }
-    auto env = EvaluateEnv::create();
+    auto env = EvaluateEnv::createGlobal();
     Reader reader(tokens);
     try {
         while (true) {

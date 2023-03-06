@@ -158,9 +158,9 @@ std::string LambdaValue::toString() const {
 }
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args) {
-    auto childEnv = env->createChildEnv(params, args);
+    auto childEnv = env->createChild(params, args);
     auto result = childEnv->evalList(body);
-    return std::move(result.back());
+    return result.back();
 }
 
 std::ostream& Value::print() const {

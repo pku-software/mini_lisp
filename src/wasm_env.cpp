@@ -11,7 +11,7 @@ private:
     std::shared_ptr<EvaluateEnv> env;
 
 public:
-    WasmEnv() : env{EvaluateEnv::create()} {}
+    WasmEnv() : env{EvaluateEnv::createGlobal()} {}
 
     std::string eval(const std::string& code) {
         auto tokens = Tokenizer::tokenize(code);

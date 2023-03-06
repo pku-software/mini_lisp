@@ -168,16 +168,19 @@ ValuePtr letForm(ValuePtr operands, EvaluateEnv& env) {
     checkOperandsCount(operands, 2);
     auto&& [car, cdr] = operands->asPair();
     auto bindings = checkOperandsCount(std::move(car));
-    auto newEnv = env.clone();
+    std::vector<std::string> names;
+    std::vector<ValuePtr> values;
     for (auto binding : bindings) {
         auto vec = checkOperandsCount(std::move(binding), 2, 2);
         if (auto name = vec[0]->getSymbolName()) {
             auto val = env.eval(std::move(vec[1]));
-            newEnv->defineBinding(*name, std::move(val));
+            names.push_back(*name);
+            values.push_back(std::move(val));
         } else {
             throw LispError("Expect let binding name, found " + vec[0]->toString());
         }
     }
+    auto newEnv = env.createChild(names, values);
     auto results = newEnv->evalList(std::move(cdr));
     return std::move(results.back());
 }
