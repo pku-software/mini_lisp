@@ -298,8 +298,8 @@ ValuePtr newline(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     return Value::nil();
 }
 ValuePtr error(const std::vector<ValuePtr>& args, EvaluateEnv&) {
-    checkArgsCount(args, 1);
-    throw LispError(args[0]->toString());
+    checkArgsCount(args, 0, 1);
+    throw LispError(args.size() == 1 ? args[0]->toString() : "");
 }
 [[noreturn]] ValuePtr exit(const std::vector<ValuePtr>& args, EvaluateEnv&) {
     checkArgsCount(args, 0, 1);
